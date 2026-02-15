@@ -1,0 +1,20 @@
+﻿telegram:
+  enabled: true
+
+rules:
+  min_total_price: 100000
+  max_total_price: 220000
+  min_rating: 8.0
+  require_free_cancel: false
+
+booking:
+  enabled: true
+  queries:
+    - name: "속초여행"
+      url: "https://www.booking.com/searchresults.html?ss=Seoul&checkin=2026-03-10&checkout=2026-03-12&group_adults=2&no_rooms=1"
+
+agoda:
+  enabled: true
+  queries:
+    - name: "Seoul trip (Agoda)"
+      url: "https://www.agoda.com/ko-kr/pages/agoda/default/DestinationSearchResult.aspx?city=9395&checkIn=2026-03-10&checkOut=2026-03-12&adults=2&rooms=1"
