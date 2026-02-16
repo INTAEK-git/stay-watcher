@@ -1,4 +1,18 @@
-﻿playwright==1.49.0
-pyyaml==6.0.2
+﻿# 웹 요청
+requests==2.31.0
+
+# HTML 파싱 (혹시 사용 중이면 유지)
+beautifulsoup4==4.12.3
+lxml==5.2.1
+
+# 비동기 브라우저 자동화
+playwright==1.43.0
+
+# 환경 변수 로딩
 python-dotenv==1.0.1
-requests==2.32.3
+
+# YAML 설정 파일
+PyYAML==6.0.1
+
+# 텔레그램 봇
+python-telegram-bot==21.6

@@ -33,7 +33,8 @@ def _state_text(s) -> str:
         "📌 현재 조건\n"
         f"- city: {s.city}\n"
         f"- dates: {s.checkin} ~ {s.checkout}\n"
-        f"- adults/rooms: {s.adults}/{s.rooms}\n"
+        f"- adults/children/rooms: {s.adults}/{s.children}/{s.rooms}\n"
+        f"- min_price: {s.min_total_price}\n"
         f"- max_price: {s.max_total_price}\n"
         f"- min_rating: {s.min_rating}\n"
         f"- free_cancel: {s.require_free_cancel}\n"
@@ -132,7 +133,7 @@ async def run_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                 )
         provider = BookingProvider()
     elif target == "agoda":
-        url = booking_search_url(
+        url = agoda_search_url(
                                     s.city,
                                     s.checkin,
                                     s.checkout,
