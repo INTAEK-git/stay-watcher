@@ -9,13 +9,15 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 from .state_store import StateStore
-from .query_builders import booking_search_url, agoda_search_url
+from .query_builders import booking_search_url, agoda_search_url,trip_search_url
 
 from src.app.rules import Rules, match_rules
 from src.app.formatter import format_msg
 
 from src.providers.booking import BookingProvider
 from src.providers.agoda import AgodaProvider
+from src.providers.trip import TripProvider
+
 
 
 # ✅ 어디서 실행하든 "프로젝트 루트(.env)"를 확실하게 로드
@@ -53,7 +55,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/set adults 2\n"
         "/set children 1\n"
         "/set rooms 1\n"
-        "/set price 220000\n"
+        "/set minprice 150000\n"
+        "/set maxprice 300000\n"
         "/set rating 8.0\n"
         "/set freecancel on|off\n"
         "/run booking\n"
@@ -90,7 +93,9 @@ async def set_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             s.children = int(vals[0])
         elif key == "rooms":
             s.rooms = int(vals[0])
-        elif key == "price":
+        elif key == "minprice":
+            s.min_total_price = int(vals[0])
+        elif key == "maxprice":
             s.max_total_price = int(vals[0])
         elif key == "rating":
             s.min_rating = float(vals[0])
@@ -110,7 +115,7 @@ async def set_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def run_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """
-    /run booking | /run agoda
+    /run booking | /run agoda | /run trip
     """
     s = store.load()
     target = (context.args[0].lower() if context.args else "booking")
@@ -142,6 +147,16 @@ async def run_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                     s.rooms,
                                 )
         provider = AgodaProvider()
+    elif target == "trip":
+        url = trip_search_url(
+                                        s.city, 
+                                        s.checkin, 
+                                        s.checkout, 
+                                        s.adults, 
+                                        s.children, 
+                                        s.rooms
+                                    )
+        provider = TripProvider()
     else:
         await update.message.reply_text("사용법: /run booking 또는 /run agoda")
         return

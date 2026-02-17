@@ -20,8 +20,14 @@ class BookingProvider:
     name = "booking"
 
     async def _parse(self, page: Page, base_url: str) -> List[Listing]:
-        await page.wait_for_timeout(1500)
         cards = await page.query_selector_all('[data-testid="property-card"]')
+
+        # ✅ cards=0이면 디버그 저장
+        if not cards:
+            from src.utils.debug_dump import dump_page
+            await dump_page(page, "booking_zero")
+            return []
+
         out: List[Listing] = []
 
         for i, c in enumerate(cards[:25]):
@@ -39,9 +45,11 @@ class BookingProvider:
             price_total = _to_int_price(price_text)
 
             rating_el = await c.query_selector('[data-testid="review-score"]')
-            rating_text = (await rating_el.inner_text()) if rating_el else ""
+            rating_text = (await rating_el.inner_text()).strip() if rating_el else ""
             rating = _to_float_rating(rating_text)
 
+            # (참고) reviews 파싱은 booking의 review-score 텍스트 구조가 바뀌어서
+            # 지금 로직이 부정확할 수 있음. 일단 유지.
             reviews = None
             if rating_el:
                 t = (await rating_el.inner_text())
@@ -68,8 +76,16 @@ class BookingProvider:
     async def fetch(self, url: str) -> List[Listing]:
         async with browser_context(headless=True) as ctx:
             page = await ctx.new_page()
+            await page.set_viewport_size({"width": 1280, "height": 800})
             await page.goto(url, wait_until="domcontentloaded", timeout=60000)
 
+            # ✅ 렌더링/요청 안정화
+            try:
+                await page.wait_for_load_state("networkidle", timeout=30000)
+            except Exception:
+                pass
+
+            # 쿠키/팝업 닫기
             for sel in ['button#onetrust-accept-btn-handler', '[data-testid="cookie-banner"] button']:
                 btn = await page.query_selector(sel)
                 if btn:
@@ -77,5 +93,18 @@ class BookingProvider:
                         await btn.click(timeout=1000)
                     except Exception:
                         pass
+
+            # ✅ 스크롤로 카드 로드 유도
+            for _ in range(3):
+                await page.mouse.wheel(0, 2500)
+                await page.wait_for_timeout(700)
+
+            # ✅ 카드가 뜰 때까지 기다림 (안 뜨면 덤프)
+            try:
+                await page.wait_for_selector('[data-testid="property-card"]', timeout=15000)
+            except Exception:
+                from src.utils.debug_dump import dump_page
+                await dump_page(page, "booking_no_cards")
+                return []
 
             return await self._parse(page, base_url=url)

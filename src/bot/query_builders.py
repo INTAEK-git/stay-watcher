@@ -27,3 +27,19 @@ def agoda_search_url(city: str, checkin: str, checkout: str, adults: int, childr
         "currency": "KRW",
     }
     return "https://www.agoda.com/ko-kr/search?" + urlencode(params)
+
+def trip_search_url(city: str, checkin: str, checkout: str, adults: int, children: int, rooms: int) -> str:
+    """
+    Trip.com 검색 URL 생성 (1차: 동작 확인용).
+    Trip.com은 실제로 cityId 등이 필요할 수 있어서,
+    추후 안정화 단계에서 city->id 매핑 or XHR(JSON) 파싱으로 개선 권장.
+    """
+    params = {
+        "city": city,
+        "checkin": checkin,
+        "checkout": checkout,
+        "adults": adults,
+        "children": children,
+        "rooms": rooms,
+    }
+    return "https://kr.trip.com/hotels/list?" + urlencode(params)
